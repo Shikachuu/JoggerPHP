@@ -111,7 +111,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $interpolate = new Interpolate();
         $logLine = $this->createLogLine($level, $interpolate($message, $context));
         foreach ($this->outputs as $output) {
-            $output->write($message);
+            $output->write($logLine);
             $output->rewind();
         }
     }
