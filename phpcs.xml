@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="iLogistic">
+	<description>A custom ruleset to use PSR12 standard in the iLogistic Project</description>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/docs/*</exclude-pattern>
+	<rule ref="PSR12">
+		<exclude name="Squiz.Functions" />
+	</rule>
+	<rule ref="Squiz.Commenting.DocCommentAlignment" />
+</ruleset>
