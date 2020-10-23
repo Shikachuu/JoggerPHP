@@ -9,6 +9,11 @@ use Psr\Log\LogLevel;
 
 final class Utilities
 {
+    /**
+     * Validates loglevel
+     * @param string $level
+     * @throws InvalidArgumentException
+     */
     public static function validateLoglevel(string $level): void {
         $logLevels = [
             LogLevel::ALERT,

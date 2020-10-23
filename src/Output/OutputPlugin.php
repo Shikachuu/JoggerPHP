@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Jogger\Output;
 
-
 interface OutputPlugin
 {
     public function write(string $message): void;

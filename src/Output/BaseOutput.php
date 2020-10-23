@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Jogger\Output;
 
-
 use Jogger\Utilities;
 
 abstract class BaseOutput implements OutputPlugin
