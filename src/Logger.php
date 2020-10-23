@@ -6,15 +6,16 @@ namespace Jogger;
 
 use DateTime;
 use Exception;
-use Psr\Log\{AbstractLogger, InvalidArgumentException, LoggerInterface, LogLevel, NullLogger};
+use Psr\Log\{AbstractLogger, InvalidArgumentException, LoggerInterface, LogLevel};
+use Jogger\Output\NoopOutput;
 use Jogger\Output\OutputPlugin;
 use stdClass;
 
 class Logger extends AbstractLogger implements LoggerInterface
 {
-    private stdClass $additionalFields;
-    private stdClass $defaultAdditionalFields;
-    private bool $isTimeFieldSet = false;
+    private stdClass $dynamicFields;
+    private stdClass $staticFields;
+    private string $timeFieldFormat;
     private string $timeZone;
     private string $name;
     /**
@@ -28,64 +29,88 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @param array<OutputPlugin> $outputs
      * @param string $timeZone
      */
-    public function __construct(string $name, array $outputs, string $timeZone) {
+    public function __construct(string $name, array $outputs = array(), string $timeZone = "Europe/London") {
         $this->name = $name;
         $this->timeZone = $timeZone;
-        $this->outputs = $outputs;
+        $this->dynamicFields = new stdClass();
+        if ($outputs === array()) {
+            $this->outputs = [new NoopOutput(LogLevel::DEBUG)];
+        } else {
+            $this->outputs = $outputs;
+        }
     }
 
     /**
-     * @param stdClass $defaultAdditionalFields
+     * @param stdClass $staticFields
      */
-    public function setDefaultAdditionalFields(stdClass $defaultAdditionalFields): void {
-        $this->defaultAdditionalFields = $defaultAdditionalFields;
+    public function setStaticFields(stdClass $staticFields): void {
+        $this->staticFields = $staticFields;
     }
 
+    /**
+     * @param string $level level of the logging line
+     * @param string $message interpolated log message
+     * @return string Json string with the inserted fields
+     */
     private function createLogLine(string $level, string $message): string {
-        if (!$this->isTimeFieldSet) {
+        if (!$this->timeFieldFormat === "") {
             $this->setTimeFormatUnix();
         }
-        $this->additionalFields->level = $level;
-        $this->additionalFields->message = $message;
+        $this->staticFields->timestamp = DateTime::createFromFormat(
+            $this->timeFieldFormat,
+            "now",
+            $this->timeZone
+        );
+        $this->dynamicFields->level = $level;
+        $this->dynamicFields->message = $message;
         $mergedObject = (object)array_merge(
-            (array)$this->defaultAdditionalFields,
-            (array)$this->additionalFields
+            (array)$this->staticFields,
+            (array)$this->dynamicFields
         );
         return json_encode($mergedObject, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
+    /**
+     * Sets the logger instance's time format to Unix timestamp
+     */
     public function setTimeFormatUnix(): void {
-        $this->defaultAdditionalFields->timestamp = new DateTime("U");
-        $this->isTimeFieldSet = true;
+        $this->timeFieldFormat = "U";
     }
 
+    /**
+     * Sets the logger instance's time format to ISO8601
+     */
     public function setTimeFormatISO8601(): void {
-        $this->defaultAdditionalFields->timestamp = new DateTime('Y-m-d\TH:i:s.uP');
-        $this->isTimeFieldSet = true;
+        $this->timeFieldFormat = 'Y-m-d\TH:i:s.uP';
     }
 
+    /**
+     * @param string $key
+     * @param string $value
+     * @return $this
+     */
     public function addString(string $key, string $value): Logger {
-        $this->additionalFields->$key = $value;
+        $this->dynamicFields->$key = $value;
         return $this;
     }
 
     public function addInteger(string $key, int $value): Logger {
-        $this->additionalFields->$key = $value;
+        $this->dynamicFields->$key = $value;
         return $this;
     }
 
     public function addFloat(string $key, float $value): Logger {
-        $this->additionalFields->$key = $value;
+        $this->dynamicFields->$key = $value;
         return $this;
     }
 
     public function addBoolean(string $key, bool $value): Logger {
-        $this->additionalFields->$key = $value;
+        $this->dynamicFields->$key = $value;
         return $this;
     }
 
     public function addArray(string $key, array $value): Logger {
-        $this->additionalFields->$key = $value;
+        $this->dynamicFields->$key = $value;
         return $this;
     }
 
@@ -96,8 +121,22 @@ class Logger extends AbstractLogger implements LoggerInterface
         $dummyObject->file = $value->getFile();
         $dummyObject->line = $value->getLine();
         $dummyObject->trace = $value->getTraceAsString();
-        $this->additionalFields->$key = $dummyObject;
+        $this->dynamicFields->$key = $dummyObject;
         return $this;
+    }
+
+    private function logLevelToNumber(string $level): int {
+        $logLevels = [
+            LogLevel::ALERT => 800,
+            LogLevel::EMERGENCY => 700,
+            LogLevel::CRITICAL => 600,
+            LogLevel::ERROR => 500,
+            LogLevel::WARNING => 400,
+            LogLevel::NOTICE => 300,
+            LogLevel::INFO => 200,
+            LogLevel::DEBUG => 100
+        ];
+        return array_search($level, $logLevels);
     }
 
     /**
@@ -111,8 +150,10 @@ class Logger extends AbstractLogger implements LoggerInterface
         $interpolate = new Interpolate();
         $logLine = $this->createLogLine($level, $interpolate($message, $context));
         foreach ($this->outputs as $output) {
-            $output->write($logLine);
-            $output->rewind();
+            if ($this->logLevelToNumber($output->getLevel()) >= $this->logLevelToNumber($level)) {
+                $output->rewind();
+                $output->write($logLine);
+            }
         }
     }
 }
