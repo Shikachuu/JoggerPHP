@@ -1,17 +1,24 @@
 <?php
-/** @noinspection ALL */
 declare(strict_types=1);
 
 namespace Jogger;
 
+use DateTimeImmutable;
+use DateTimeZone;
+use DomainException;
+use Exception;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\InvalidArgumentException;
+use ReflectionClass;
+use RuntimeException;
+use stdClass;
 
 class LoggerTest extends TestCase
 {
     private function testAbstractDynamicFields(string $type, array $cases) {
         $object = new Logger("test");
-        $reflector = new \ReflectionClass($object);
+        $reflector = new ReflectionClass($object);
         $dynamicFields = $reflector->getProperty("dynamicFields");
         $dynamicFields->setAccessible(true);
         foreach ($cases as $key => $value) {
@@ -35,7 +42,7 @@ class LoggerTest extends TestCase
         $object = new Logger("testCaseISO");
         $object->setTimeFormatISO8601();
 
-        $reflector = new \ReflectionClass($object);
+        $reflector = new ReflectionClass($object);
         $timeFieldFormat = $reflector->getProperty("timeFieldFormat");
         $timeFieldFormat->setAccessible(true);
         $this->assertEquals(
@@ -53,7 +60,7 @@ class LoggerTest extends TestCase
         $object = new Logger("testCaseISO");
         $object->setTimeFormatUnix();
 
-        $reflector = new \ReflectionClass($object);
+        $reflector = new ReflectionClass($object);
         $timeFieldFormat = $reflector->getProperty("timeFieldFormat");
         $timeFieldFormat->setAccessible(true);
         $this->assertEquals('U', $timeFieldFormat->getValue($object));
@@ -64,13 +71,13 @@ class LoggerTest extends TestCase
     }
 
     public function testSetStaticFields() {
-        $dummyField = new \stdClass();
+        $dummyField = new stdClass();
         $dummyField->test = "pass";
 
         $object = new Logger("test");
         $object->setStaticFields($dummyField);
 
-        $reflector = new \ReflectionClass($object);
+        $reflector = new ReflectionClass($object);
         $staticFields = $reflector->getProperty("staticFields");
         $staticFields->setAccessible(true);
         $this->assertObjectHasAttribute(
@@ -124,7 +131,7 @@ class LoggerTest extends TestCase
             "case2" => ["asd" => "dsa", "761" => 2],
             "case3" => [],
             "case4" => ["aasd", "das"],
-            "case5" => [new \stdClass(), new \stdClass()]
+            "case5" => [new stdClass(), new stdClass()]
         ];
         $this->testAbstractDynamicFields("addArray", $cases);
     }
@@ -132,19 +139,114 @@ class LoggerTest extends TestCase
     public function testAddException() {
         $cases = [
             "case1" => new InvalidArgumentException("test"),
-            "case2" => new \Exception("test"),
-            "case3" => new \LogicException("test"),
-            "case4" => new \DomainException("test"),
-            "case5" => new \RuntimeException("test")
+            "case2" => new Exception("test"),
+            "case3" => new LogicException("test"),
+            "case4" => new DomainException("test"),
+            "case5" => new RuntimeException("test")
         ];
         $this->testAbstractDynamicFields("addException", $cases);
     }
 
-    public function test__construct() {
-
+    public function testLogLevelToNumberPositiveCases() {
+        $positiveCases = [
+            "testAlert" => "alert",
+            "testDebug" => "debug",
+            "testCritical" => "critical",
+            "testEmergency" => "emergency",
+            "testError" => "error",
+            "testNotice" => "notice",
+            "testWarning" => "warning",
+            "testInfo" => "info"
+        ];
+        $negativeCases = [
+            "testString" => "apple",
+            "testInt" => 200,
+        ];
+        $object = new Logger("test");
+        $reflector = new ReflectionClass($object);
+        $logLevelToNumber = $reflector->getMethod("logLevelToNumber");
+        $logLevelToNumber->setAccessible(true);
+        foreach ($positiveCases as $key => $case) {
+            $this->assertIsInt($logLevelToNumber->invokeArgs($object, [$case]));
+        }
+        foreach ($negativeCases as $key => $case) {
+            $this->expectException("InvalidArgumentException");
+            $logLevelToNumber->invokeArgs($object, [$case]);
+        }
     }
 
-    public function testLog() {
-
+    public function testCreateLogLine() {
+        /*logger, level, $message, $expect*/
+        $cases = [
+            "case1" => [
+                new Logger("test"),
+                "debug",
+                "hello",
+                json_encode(
+                    [
+                        "timestamp" => (new DateTimeImmutable())->format("U"),
+                        "level" => "debug",
+                        "message" => "hello"
+                    ],
+                    JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
+                )
+            ],
+            "case2" => [
+                (new Logger("test"))->addFloat("test", 12.5),
+                "debug",
+                "hello",
+                json_encode(
+                    [
+                        "timestamp" => (new DateTimeImmutable())->format("U"),
+                        "level" => "debug",
+                        "message" => "hello",
+                        "test" => 12.5
+                    ],
+                    JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
+                )
+            ],
+            "case3" => [
+                (new Logger("test"))->addFloat("test", 12.5)->addBoolean("test", true),
+                "debug",
+                "hello",
+                json_encode(
+                    [
+                        "timestamp" => (new DateTimeImmutable())->format("U"),
+                        "level" => "debug",
+                        "message" => "hello",
+                        "test" => true
+                    ],
+                    JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
+                )
+            ],
+            "case4" => [
+                (new Logger("test"))->addFloat("test", 12.5)->addBoolean("test", true),
+                "debug",
+                "hello",
+                json_encode(
+                    [
+                        "timestamp" => (new DateTimeImmutable("now", new DateTimeZone("Europe/London")))->format("Y-m-d\TH:i:s.uP"),
+                        "level" => "debug",
+                        "message" => "hello",
+                        "test2" => 3,
+                        "test" => true
+                    ],
+                    JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
+                )
+            ],
+        ];
+        $case4DummyObject = new stdClass();
+        $case4DummyObject->test2 = 3;
+        $cases["case4"][0]->setTimeFormatISO8601();
+        $cases["case4"][0]->setStaticFields($case4DummyObject);
+        foreach ($cases as $key => $case) {
+            $reflector = new ReflectionClass($case[0]);
+            $createLogLine = $reflector->getMethod("createLogLine");
+            $createLogLine->setAccessible(true);
+            $this->assertEquals(
+                $case[3],
+                $createLogLine->invokeArgs($case[0], [$case[1], $case[2]])
+            );
+        }
     }
 }
