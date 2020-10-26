@@ -118,6 +118,7 @@ class Logger extends AbstractLogger implements LoggerInterface
 
     public function addException(string $key, Exception $value): Logger {
         $dummyObject = new stdClass();
+        $dummyObject->exception = (new \ReflectionClass($value))->getShortName();
         $dummyObject->code = $value->getCode();
         $dummyObject->message = $value->getMessage();
         $dummyObject->file = $value->getFile();

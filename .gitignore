@@ -1,5 +1,6 @@
 composer.phar
-/vendor/
+vendor/
 composer.lock
 .idea
 .phpunit*
+coverage

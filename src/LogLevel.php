@@ -2,6 +2,11 @@
 
 namespace Jogger;
 
+/**
+ * Class LogLevel
+ * @package Jogger
+ * @codeCoverageIgnore
+ */
 class LogLevel extends \Psr\Log\LogLevel
 {
     public const EMERGENCY = 800;

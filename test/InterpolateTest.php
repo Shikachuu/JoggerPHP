@@ -1,13 +1,20 @@
 <?php /** @noinspection PhpUnhandledExceptionInspection */
+declare(strict_types=1);
 
 namespace Jogger;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
+/**
+ * Class InterpolateTest
+ * @covers \Jogger\Interpolate
+ */
 class InterpolateTest extends TestCase
 {
-
+    /**
+     * @covers \Jogger\Interpolate::setDefaultContext
+     */
     public function testSetDefaultContext() {
         $object = new Interpolate();
         $object->setDefaultContext(["test" => "setter"]);
@@ -23,6 +30,9 @@ class InterpolateTest extends TestCase
         $this->assertArrayNotHasKey("test", $defaultContext->getValue($object));
     }
 
+    /**
+     * @covers \Jogger\Interpolate::getDefaultContext
+     */
     public function testGetDefaultContext() {
         $object = new Interpolate(["test" => "getter"]);
 
@@ -32,6 +42,9 @@ class InterpolateTest extends TestCase
         $this->assertEquals($object->getDefaultContext(), $defaultContext->getValue($object));
     }
 
+    /**
+     * @covers \Jogger\Interpolate::__invoke
+     */
     public function testCallWithDefaultContextOnly() {
         $object = new Interpolate(["test" => "pass"]);
 
@@ -48,6 +61,9 @@ class InterpolateTest extends TestCase
         $this->assertStringContainsString("{key3}", $interpolatedString);
     }
 
+    /**
+     * @covers \Jogger\Interpolate::__invoke
+     */
     public function testCallWithDynamicContextOnly() {
         $object = new Interpolate();
 
@@ -63,6 +79,9 @@ class InterpolateTest extends TestCase
         $this->assertStringContainsString("{key3}", $interpolatedString);
     }
 
+    /**
+     * @covers \Jogger\Interpolate::__construct
+     */
     public function test__constructEmptyValue() {
         $object = new Interpolate();
         $reflector = new ReflectionClass($object);
@@ -71,6 +90,9 @@ class InterpolateTest extends TestCase
         $this->assertEquals([], $defaultContext->getValue($object));
     }
 
+    /**
+     * @covers \Jogger\Interpolate::__construct
+     */
     public function test__constructValue() {
         $object = new Interpolate(["testcase" => "construct value"]);
         $reflector = new ReflectionClass($object);
