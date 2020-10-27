@@ -4,6 +4,7 @@
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/docs/*</exclude-pattern>
 	<exclude-pattern>*/test/*</exclude-pattern>
+	<exclude-pattern>*/coverage/*</exclude-pattern>
 	<rule ref="PSR12">
 		<exclude name="Squiz.Functions" />
 	</rule>

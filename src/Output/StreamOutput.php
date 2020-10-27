@@ -15,13 +15,17 @@ class StreamOutput extends BaseOutput implements OutputPlugin
         fwrite($this->stream, $message);
     }
 
-    public function close(): void {
+    public function close(): bool {
         if (is_resource($this->stream)) {
-            fclose($this->stream);
+            return fclose($this->stream);
         }
         $this->stream = null;
+        return false;
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function __destruct() {
         $this->close();
     }

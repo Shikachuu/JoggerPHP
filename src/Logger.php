@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace Jogger;
 
-use DateTime;
+use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
-use Psr\Log\{AbstractLogger, InvalidArgumentException, LoggerInterface, LogLevel};
 use Jogger\Output\NoopOutput;
 use Jogger\Output\OutputPlugin;
+use Psr\Log\{AbstractLogger, InvalidArgumentException, LoggerInterface, LogLevel};
 use stdClass;
 
 class Logger extends AbstractLogger implements LoggerInterface
 {
     private stdClass $dynamicFields;
     private stdClass $staticFields;
-    private string $timeFieldFormat;
+    private string $timeFieldFormat = "";
     private string $timeZone;
     private string $name;
     /**
@@ -33,6 +34,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $this->name = $name;
         $this->timeZone = $timeZone;
         $this->dynamicFields = new stdClass();
+        $this->staticFields = new stdClass();
         if ($outputs === array()) {
             $this->outputs = [new NoopOutput(LogLevel::DEBUG)];
         } else {
@@ -51,19 +53,19 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @param string $level level of the logging line
      * @param string $message interpolated log message
      * @return string Json string with the inserted fields
+     * @throws Exception
      */
     private function createLogLine(string $level, string $message): string {
-        if (!$this->timeFieldFormat === "") {
+        if ($this->timeFieldFormat === "") {
             $this->setTimeFormatUnix();
         }
-        $this->staticFields->timestamp = DateTime::createFromFormat(
-            $this->timeFieldFormat,
-            "now",
-            $this->timeZone
-        );
-        $this->dynamicFields->level = $level;
-        $this->dynamicFields->message = $message;
+        $baseProperties = new stdClass();
+        $timestamp = new DateTimeImmutable("now", new DateTimeZone($this->timeZone));
+        $baseProperties->timestamp = $timestamp->format($this->timeFieldFormat);
+        $baseProperties->level = $level;
+        $baseProperties->message = $message;
         $mergedObject = (object)array_merge(
+            (array)$baseProperties,
             (array)$this->staticFields,
             (array)$this->dynamicFields
         );
@@ -116,6 +118,7 @@ class Logger extends AbstractLogger implements LoggerInterface
 
     public function addException(string $key, Exception $value): Logger {
         $dummyObject = new stdClass();
+        $dummyObject->exception = (new \ReflectionClass($value))->getShortName();
         $dummyObject->code = $value->getCode();
         $dummyObject->message = $value->getMessage();
         $dummyObject->file = $value->getFile();
@@ -126,6 +129,7 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     private function logLevelToNumber(string $level): int {
+        Utilities::validateLoglevel($level);
         $logLevels = [
             LogLevel::ALERT => 800,
             LogLevel::EMERGENCY => 700,
@@ -136,14 +140,14 @@ class Logger extends AbstractLogger implements LoggerInterface
             LogLevel::INFO => 200,
             LogLevel::DEBUG => 100
         ];
-        return array_search($level, $logLevels);
+        return $logLevels[$level];
     }
 
     /**
      * @param mixed $level
      * @param $message
      * @param array $context
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|Exception
      */
     public function log($level, $message, array $context = array()): void {
         Utilities::validateLoglevel($level);
