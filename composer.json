@@ -35,7 +35,17 @@
         "squizlabs/php_codesniffer": "3.*"
     },
     "config": {
-		"platform-check": false,
-		"optimize-autoloader": true
-	}
+        "platform-check": false,
+        "optimize-autoloader": true
+    },
+    "scripts": {
+        "test": "phpunit --coverage-html coverage --stop-on-failure --fail-on-risky --testdox --strict-coverage",
+        "lint": "phpcs . -n",
+        "lint-fix": "phpcbf . -n"
+    },
+    "scripts-descriptions": {
+        "test": "Run all unit tests!",
+        "lint": "Run PHP_CodeSniffer to analyze the code!",
+        "lint-fix": "Run PHP_CodeSniffer to fix the code!"
+    }
 }

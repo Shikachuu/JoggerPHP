@@ -14,14 +14,24 @@ abstract class BaseOutput implements OutputPlugin
         $this->level = $level;
     }
 
+    /**
+     * @codeCoverageIgnore
+     * @param string $message
+     */
     public function write(string $message): void {
         // NOOP
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function rewind(): void {
         // NOOP
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function close(): void {
         // NOOP
     }
