@@ -10,7 +10,7 @@ interface OutputPlugin
 
     public function rewind(): void;
 
-    public function close(): void;
+    public function close(): bool;
 
     public function setLevel(string $level): void;
 

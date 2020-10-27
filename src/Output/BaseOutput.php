@@ -32,8 +32,8 @@ abstract class BaseOutput implements OutputPlugin
     /**
      * @codeCoverageIgnore
      */
-    public function close(): void {
-        // NOOP
+    public function close(): bool {
+        return true;
     }
 
     public function setLevel(string $level): void {
