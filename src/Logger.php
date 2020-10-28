@@ -10,6 +10,7 @@ use Exception;
 use Jogger\Output\NoopOutput;
 use Jogger\Output\OutputPlugin;
 use Psr\Log\{AbstractLogger, InvalidArgumentException, LoggerInterface, LogLevel};
+use ReflectionClass;
 use stdClass;
 
 class Logger extends AbstractLogger implements LoggerInterface
@@ -118,7 +119,7 @@ class Logger extends AbstractLogger implements LoggerInterface
 
     public function addException(string $key, Exception $value): Logger {
         $dummyObject = new stdClass();
-        $dummyObject->exception = (new \ReflectionClass($value))->getShortName();
+        $dummyObject->exception = (new ReflectionClass($value))->getShortName();
         $dummyObject->code = $value->getCode();
         $dummyObject->message = $value->getMessage();
         $dummyObject->file = $value->getFile();
@@ -154,7 +155,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $interpolate = new Interpolate();
         $logLine = $this->createLogLine($level, $interpolate($message, $context));
         foreach ($this->outputs as $output) {
-            if ($this->logLevelToNumber($output->getLevel()) >= $this->logLevelToNumber($level)) {
+            if ($this->logLevelToNumber($output->getLevel()) <= $this->logLevelToNumber($level)) {
                 $output->rewind();
                 $output->write($logLine);
             }
