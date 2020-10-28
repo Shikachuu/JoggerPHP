@@ -1,15 +1,15 @@
 # Jogger :running:
-![Codecov](https://img.shields.io/codecov/c/github/Shikachuu/JoggerPHP) ![GitHub](https://img.shields.io/github/license/Shikachuu/JoggerPHP)
+![Codecov](https://img.shields.io/codecov/c/github/Shikachuu/JoggerPHP) ![GitHub](https://img.shields.io/github/license/Shikachuu/JoggerPHP) ![Packagist Version](https://img.shields.io/packagist/v/shikachuu/jogger)
 ---
 PSR-3 compatible, opinionated logger library for PHP mostly based on a Go project [rs/zerolog](https://github.com/rs/zerolog)
 and PHP project [Seldaek/monolog](https://github.com/Seldaek/monolog).
 
-I built this library because I mostly feel like interpolation for json log strings isn't able to provide
-as much flexibility and harder to filter on, than for additional fields and since json syntax provides it
-then we shall use it's full potential.
+This library has been built, because I mostly felt like interpolation for json log strings can't provide
+as much flexibility and harder to filter on, than additional fields.
+Since the json syntax provides it, we should use it's full potential.
 ## Install
 ```sh
-composer require Shikachuu/JoggerPHP
+composer require shikachuu/jogger
 ```
 ## Features and Examples
 ### Time formats:
@@ -78,7 +78,7 @@ Jogger supports output plugins made by its users. In fact, it contains 4 by defa
 In the constructor's array you have the ability to provide the loglevel,
 so you can use different output for different levels.
 
-The core library `Shikachuu/JoggerPHP` **does not**, intend to contain (anymore) than these baked in outputs,
+The core library `shikachuu/jogger`, **does not** intend to contain (anymore) than these baked in outputs,
 anyhow it provides an [interface](src/Output/OutputPlugin.php), and an [abstract base class](src/Output/BaseOutput.php)
 to write your own solutions, and you are more than welcome to open a Pull Request to add yours to the README file.
 
