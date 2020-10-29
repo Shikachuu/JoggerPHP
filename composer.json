@@ -1,6 +1,6 @@
 {
     "name": "shikachuu/jogger",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "time": "2020-10-25",
     "type": "library",
     "description": "PSR-3 compatible logger library for PHP mostly based on a Go project rs/zerolog.",
@@ -12,7 +12,7 @@
     ],
     "homepage": "https://github.com/Shikachuu/JoggerPHP",
     "readme": "README.md",
-    "license": "Boost Software License",
+    "license": "BSL-1.0",
     "authors": [
         {
             "name": "Shikachuu",
