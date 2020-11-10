@@ -7,6 +7,10 @@ namespace Jogger;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
 
+/**
+ * Utility functions for log handling
+ * @package Jogger
+ */
 final class Utilities
 {
     /**

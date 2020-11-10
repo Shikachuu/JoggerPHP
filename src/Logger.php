@@ -13,6 +13,10 @@ use Psr\Log\{AbstractLogger, InvalidArgumentException, LoggerInterface, LogLevel
 use ReflectionClass;
 use stdClass;
 
+/**
+ * Jogger's main logging driver
+ * @package Jogger
+ */
 class Logger extends AbstractLogger implements LoggerInterface
 {
     private stdClass $dynamicFields;
@@ -26,10 +30,11 @@ class Logger extends AbstractLogger implements LoggerInterface
     private array $outputs;
 
     /**
-     * Logger constructor.
-     * @param string $name
-     * @param array<OutputPlugin> $outputs
-     * @param string $timeZone
+     * Creates a new logging instance.
+     * @param string $name name of the logging context
+     * @param array<OutputPlugin> $outputs array of Output\OutputPlugin instances
+     * @param string $timeZone timezone you want to use for the logger
+     * @see https://www.php.net/manual/en/timezones.php Available Time Zones
      */
     public function __construct(string $name, array $outputs = array(), string $timeZone = "Europe/London") {
         $this->name = $name;
@@ -44,17 +49,19 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * @param stdClass $staticFields
+     * @param array<mixed> $staticFields Key-Value paris (associative array)
+     * Fields that should be included every log line across the current logging instance.
+     * May overwritten by dynamically assigned fields.
      */
-    public function setStaticFields(stdClass $staticFields): void {
-        $this->staticFields = $staticFields;
+    public function setStaticFields(array $staticFields): void {
+        $this->staticFields = (object)$staticFields;
     }
 
     /**
-     * @param string $level level of the logging line
-     * @param string $message interpolated log message
+     * @param string $level Level of the log message
+     * @param string $message Interpolated log message
      * @return string Json string with the inserted fields
-     * @throws Exception
+     * @throws Exception On date time error
      */
     private function createLogLine(string $level, string $message): string {
         if ($this->timeFieldFormat === "") {
@@ -88,35 +95,69 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * @param string $key
-     * @param string $value
-     * @return $this
+     * Adds a new string field to the log line and returns the current logging context.
+     * @param string $key Name of the field
+     * @param string $value Value of the field
+     * @return $this Returns the current logging context
      */
     public function addString(string $key, string $value): Logger {
         $this->dynamicFields->$key = $value;
         return $this;
     }
 
+    /**
+     * Adds a new integer field to the log line and returns the current logging context.
+     * @param string $key Name of the field
+     * @param int $value Value of the field
+     * @return $this Returns the current logging context
+     */
     public function addInteger(string $key, int $value): Logger {
         $this->dynamicFields->$key = $value;
         return $this;
     }
 
+    /**
+     * Adds a new float field to the log line and returns the current logging context.
+     * @param string $key Name of the field
+     * @param float $value Value of the field
+     * @return $this Returns the current logging context
+     */
     public function addFloat(string $key, float $value): Logger {
         $this->dynamicFields->$key = $value;
         return $this;
     }
 
+    /**
+     * Adds a new boolean field to the log line and returns the current logging context.
+     * @param string $key Name of the field
+     * @param bool $value Value of the field
+     * @return $this Returns the current logging context
+     */
     public function addBoolean(string $key, bool $value): Logger {
         $this->dynamicFields->$key = $value;
         return $this;
     }
 
+    /**
+     * Adds a new array/object field to the log line,
+     * depends on the passed array and returns the current logging context.
+     * @param string $key Name of the field
+     * @param array $value Value of the field, associative arrays will be casted to Object
+     * @return $this Returns the current logging context
+     */
     public function addArray(string $key, array $value): Logger {
         $this->dynamicFields->$key = $value;
         return $this;
     }
 
+    /**
+     * Adds a new object field to the log line, based on the passed exception and returns the current logging context.
+     *
+     * The Exception should be caught before passed in!
+     * @param string $key Name of the field
+     * @param Exception $value Value of the field, exception will be casted to Object with it's default primary fields
+     * @return $this Returns the current logging context
+     */
     public function addException(string $key, Exception $value): Logger {
         $dummyObject = new stdClass();
         $dummyObject->exception = (new ReflectionClass($value))->getShortName();
@@ -129,7 +170,12 @@ class Logger extends AbstractLogger implements LoggerInterface
         return $this;
     }
 
-    private function logLevelToNumber(string $level): int {
+    /**
+     * @param string $level LogLevel that should be transformed to its weight.
+     * @return int Returns the current weight of the log level.
+     * @throws InvalidArgumentException On invalid LogLevel string input.
+     */
+    private static function logLevelToNumber(string $level): int {
         Utilities::validateLoglevel($level);
         $logLevels = [
             LogLevel::ALERT => 800,
@@ -145,17 +191,30 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * @param mixed $level
-     * @param $message
-     * @param array $context
-     * @throws InvalidArgumentException|Exception
+     * Resets the dynamic fields.
+     */
+    private function resetDynamicFields(): void {
+        $this->dynamicFields = new stdClass();
+    }
+
+    /**
+     * @param string $level Level of the current log message.
+     *
+     * Valid levels: debug, info, notice, warning, error, critical, emergency, alert
+     * @param string $message Actual log message, every word surrounded by curly braces,
+     * will be replaced to its value pair from the $context array if presented.
+     * @param array $context Context holds key-value pairs
+     * to replace parts of the $message that surrounded by curly braces and equals to a key.
+     * @throws InvalidArgumentException|Exception Throws Exception when invalid log level or time zone is provided.
+     * @see LogLevel For valid log levels as constants.
      */
     public function log($level, $message, array $context = array()): void {
         Utilities::validateLoglevel($level);
         $interpolate = new Interpolate();
         $logLine = $this->createLogLine($level, $interpolate($message, $context));
+        $this->resetDynamicFields();
         foreach ($this->outputs as $output) {
-            if ($this->logLevelToNumber($output->getLevel()) <= $this->logLevelToNumber($level)) {
+            if (Logger::logLevelToNumber($output->getLevel()) <= Logger::logLevelToNumber($level)) {
                 $output->rewind();
                 $output->write($logLine);
             }
