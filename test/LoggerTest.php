@@ -4,18 +4,24 @@ declare(strict_types=1);
 namespace Jogger;
 
 use DateTimeImmutable;
+use DomainException;
+use Exception;
 use Jogger\Output\NoopOutput;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\InvalidArgumentException;
 use ReflectionClass;
+use ReflectionException;
+use RuntimeException;
 use stdClass;
 
 /**
  * Class LoggerTest
  * @covers \Jogger\Logger
- * @uses \Jogger\Output\BaseOutput
- * @uses \Jogger\Output\NoopOutput
- * @uses \Jogger\Utilities::validateLoglevel()
+ * @uses   \Jogger\Output\BaseOutput
+ * @uses   \Jogger\Output\NoopOutput
+ * @uses   \Jogger\Utilities::validateLoglevel()
+ * @uses   \Jogger\Interpolate
  */
 class LoggerTest extends TestCase
 {
@@ -39,6 +45,7 @@ class LoggerTest extends TestCase
             $outputs->getValue($logger)
         );
     }
+
     /**
      * @covers \Jogger\Logger::addFloat
      * @covers \Jogger\Logger::addBoolean
@@ -48,7 +55,7 @@ class LoggerTest extends TestCase
      * @covers \Jogger\Logger::addException
      * @param string $type
      * @param array $cases
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     private function testAbstractDynamicFields(string $type, array $cases) {
         $object = new Logger("test");
@@ -114,11 +121,8 @@ class LoggerTest extends TestCase
      * @covers \Jogger\Logger::setStaticFields
      */
     public function testSetStaticFields() {
-        $dummyField = new stdClass();
-        $dummyField->test = "pass";
-
         $object = new Logger("test");
-        $object->setStaticFields($dummyField);
+        $object->setStaticFields(["test" => "pass"]);
 
         $reflector = new ReflectionClass($object);
         $staticFields = $reflector->getProperty("staticFields");
@@ -200,10 +204,10 @@ class LoggerTest extends TestCase
     public function testAddException() {
         $cases = [
             "case1" => new InvalidArgumentException("test"),
-            "case2" => new \Exception("test"),
-            "case3" => new \LogicException("test"),
-            "case4" => new \DomainException("test"),
-            "case5" => new \RuntimeException("test")
+            "case2" => new Exception("test"),
+            "case3" => new LogicException("test"),
+            "case4" => new DomainException("test"),
+            "case5" => new RuntimeException("test")
         ];
         $object = new Logger("test");
         $reflector = new ReflectionClass($object);
@@ -261,9 +265,12 @@ class LoggerTest extends TestCase
 
     /**
      * @covers \Jogger\Logger::createLogLine
+     * @covers \Jogger\Logger::log
      */
     public function testCreateLogLine() {
         /*logger, level, $message, $expect*/
+        $case4Logger = new Logger("test");
+        $case4Logger->addString("test", "dynamicFieldReset")->log("info", "");
         $cases = [
             "case1" => [
                 new Logger("test"),
@@ -306,6 +313,19 @@ class LoggerTest extends TestCase
                     JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK
                 )
             ],
+            "case4" => [
+                $case4Logger->addBoolean("valid", true),
+                "debug",
+                "hello",
+                json_encode(
+                    [
+                        "timestamp" => (int)(new DateTimeImmutable())->format("U"),
+                        "level" => "debug",
+                        "message" => "hello",
+                        "valid" => true
+                    ]
+                )
+            ]
         ];
         foreach ($cases as $key => $case) {
             $reflector = new ReflectionClass($case[0]);
