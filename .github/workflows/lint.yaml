@@ -1,22 +1,22 @@
 name: Repository Linter
 on:
-    push:
-        branches: [ master ]
+  push:
+    branches: [ master ]
 
 jobs:
-    linter:
-        runs-on: ubuntu-latest
-        steps:
-            -   uses: actions/checkout@v2
-            -   name: Downloads PHP_CodeSniffer and lints PHP code
-                run: |
-                    curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar
-                    php phpcbf.phar . -n -vv -q  || true
-            -   name: Commits and pushes any change
-                run: |
-                    git config --local user.email "actions@github.com"
-                    git config --local user.name "GitHub Actions"
-                    if [[ `git status --porcelain` ]]; then
-                      git commit -m "Lint the code with PHP_CodeSniffer's phpcbf" -a
-                      git push
-                    fi
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Downloads PHP_CodeSniffer and lints PHP code
+      run: |
+        curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar
+        php phpcbf.phar . -n -vv -q  || true
+    - name: Commits and pushes any change
+      run: |
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions"
+        if [[ `git status --porcelain` ]]; then
+          git commit -m "Lint the code with PHP_CodeSniffer's phpcbf" -a
+          git push
+        fi
