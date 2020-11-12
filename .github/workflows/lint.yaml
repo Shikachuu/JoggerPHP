@@ -1,7 +1,7 @@
 name: Repository Linter
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   linter:
