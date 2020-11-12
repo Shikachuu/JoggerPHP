@@ -1,6 +1,7 @@
 <?php
 
 namespace Jogger\Output;
+
 /**
  * Output plugin for PHP streams.
  * @package Jogger\Output

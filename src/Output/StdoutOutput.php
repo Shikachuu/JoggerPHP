@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace Jogger\Output;
+
 /**
  * PHP STDOUT Output plugin based on the StreamOutput plugin.
  * @package Jogger\Output
