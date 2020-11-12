@@ -101,7 +101,7 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @return $this Returns the current logging context
      */
     public function addString(string $key, string $value): Logger {
-        $this->dynamicFields->$key = $value;
+        $this->dynamicFields->$key = strval($value);
         return $this;
     }
 
@@ -112,7 +112,7 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @return $this Returns the current logging context
      */
     public function addInteger(string $key, int $value): Logger {
-        $this->dynamicFields->$key = $value;
+        $this->dynamicFields->$key = intval($value);
         return $this;
     }
 
@@ -123,7 +123,7 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @return $this Returns the current logging context
      */
     public function addFloat(string $key, float $value): Logger {
-        $this->dynamicFields->$key = $value;
+        $this->dynamicFields->$key = floatval($value);
         return $this;
     }
 
@@ -134,7 +134,7 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @return $this Returns the current logging context
      */
     public function addBoolean(string $key, bool $value): Logger {
-        $this->dynamicFields->$key = $value;
+        $this->dynamicFields->$key = boolval($value);
         return $this;
     }
 
