@@ -8,6 +8,7 @@ use DomainException;
 use Exception;
 use Jogger\Output\NoopOutput;
 use LogicException;
+use Output\ArrayOutput;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\InvalidArgumentException;
 use ReflectionClass;
@@ -265,7 +266,6 @@ class LoggerTest extends TestCase
 
     /**
      * @covers \Jogger\Logger::createLogLine
-     * @covers \Jogger\Logger::log
      */
     public function testCreateLogLine() {
         /*logger, level, $message, $expect*/
@@ -336,5 +336,29 @@ class LoggerTest extends TestCase
                 $createLogLine->invokeArgs($case[0], [$case[1], $case[2]])
             );
         }
+    }
+
+    /**
+     * @covers \Jogger\Logger::log
+     * @uses   \Output\ArrayOutput
+     * @uses   \Jogger\Interpolate
+     * @uses   \Jogger\Utilities
+     */
+    public function testLog() {
+        require_once "Output/ArrayOutput.php";
+        $debugOutput = new ArrayOutput("debug");
+        $infoOutput = new ArrayOutput("info");
+        $criticalOutput = new ArrayOutput("critical");
+        $logger = new Logger("testLog", [$debugOutput, $infoOutput, $criticalOutput]);
+        $logger->log("error", "testMessage");
+        $this->assertEquals(1, $debugOutput->getNumberOfMessages());
+        $this->assertEquals(1, $infoOutput->getNumberOfMessages());
+        $this->assertEquals(0, $criticalOutput->getNumberOfMessages());
+        $logger->log("alert", "testMessage");
+        $this->assertEquals(2, $debugOutput->getNumberOfMessages());
+        $this->assertEquals(2, $infoOutput->getNumberOfMessages());
+        $this->assertEquals(1, $criticalOutput->getNumberOfMessages());
+        $this->expectException(InvalidArgumentException::class);
+        $logger->log("test", "testMessage");
     }
 }
