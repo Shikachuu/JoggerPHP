@@ -1,8 +1,13 @@
-name: PHP Composer
+name: PHP Run Tests
 
 on:
-  push:
-    branches: [ main ]
+    workflow_run:
+        workflows:
+            - Repository Linter
+        types:
+            - completed
+        branches:
+            - master
 
 jobs:
   build:
