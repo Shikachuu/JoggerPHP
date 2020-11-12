@@ -9,9 +9,9 @@ class Interpolate
     private array $defaultContext;
 
     /**
-     * Interpolate constructor.
+     * Interpolate's constructor.
      *
-     * Let you set some key value pairs as the default context when interpolate string.
+     * Lets you set some key value pairs as the default context when interpolating string.
      * @param array $defaultContext
      */
     public function __construct(array $defaultContext = array()) {
@@ -26,7 +26,7 @@ class Interpolate
     }
 
     /**
-     * @param array $defaultContext Set the current default context for string interpolation.
+     * @param array $defaultContext Sets the current default context for string interpolation.
      */
     public function setDefaultContext(array $defaultContext): void {
         $this->defaultContext = $defaultContext;
@@ -35,10 +35,10 @@ class Interpolate
     /**
      * Takes a string and an associative array as params.
      *
-     * Changes every part of the string that surrounded by curly braces, and search it as an array key,
-     * if the array contains a value for the key the function will swap it to it's assigned value, casted to a string.
+     * Changes every part of the string that is surrounded by curly braces, and uses it as an array key to search.
+     * If the array contains a value for the key the function will swap it to it's assigned value, casted to a string.
      * @param string $message The string that needs the values changed.
-     * @param array $context Associative, key-value pairs, the key should be the name given between the {} in the string
+     * @param array $context Associative, key-value pairs, the key should be the name given between the curly braces in the string
      * @return string
      */
     public function __invoke(string $message, array $context = array()): string {

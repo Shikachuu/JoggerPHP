@@ -50,8 +50,8 @@ class Logger extends AbstractLogger implements LoggerInterface
 
     /**
      * @param array<mixed> $staticFields Key-Value paris (associative array)
-     * Fields that should be included every log line across the current logging instance.
-     * May overwritten by dynamically assigned fields.
+     * Fields that should be included in every log line across the current logging instance.
+     * May be overwritten by dynamically assigned fields.
      */
     public function setStaticFields(array $staticFields): void {
         $this->staticFields = (object)$staticFields;
@@ -140,7 +140,7 @@ class Logger extends AbstractLogger implements LoggerInterface
 
     /**
      * Adds a new array/object field to the log line,
-     * depends on the passed array and returns the current logging context.
+     * depending on the passed array, and returns the current logging context.
      * @param string $key Name of the field
      * @param array $value Value of the field, associative arrays will be casted to Object
      * @return $this Returns the current logging context
@@ -151,7 +151,7 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * Adds a new object field to the log line, based on the passed exception and returns the current logging context.
+     * Adds a new object field to the log line, based on the passed exception, and returns the current logging context.
      *
      * The Exception should be caught before passed in!
      * @param string $key Name of the field
@@ -204,7 +204,7 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @param string $message Actual log message, every word surrounded by curly braces,
      * will be replaced to its value pair from the $context array if presented.
      * @param array $context Context holds key-value pairs
-     * to replace parts of the $message that surrounded by curly braces and equals to a key.
+     * to replace parts of the $message that are surrounded by curly braces and equals to a key.
      * @throws InvalidArgumentException|Exception Throws Exception when invalid log level or time zone is provided.
      * @see LogLevel For valid log levels as constants.
      */
