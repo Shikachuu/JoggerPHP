@@ -81,7 +81,5 @@ Jogger supports output plugins made by its users. In fact, it contains 4 by defa
 In the constructor's array you have the ability to provide the loglevel,
 so you can use different outputs for different levels.
 
-The core library `shikachuu/jogger`, **does not** intend to contain any more than these baked in outputs,
-but it provides an [interface](src/Output/OutputPlugin.php), and an [abstract base class](src/Output/BaseOutput.php) to write your own solutions, and you are more than welcome to open a Pull Request to add yours to the README file.
-
-## Community Outputs:
+The core library `shikachuu/jogger`, currently **does not** accepts Pull Requests for more outputs,
+but it provides an [interface](src/Output/OutputPlugin.php), and an [abstract base class](src/Output/BaseOutput.php) to write your own solutions, and you are more than welcome to open a Pull Request to link your repository to the README file's plugins section.
