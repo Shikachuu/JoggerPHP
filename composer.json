@@ -1,6 +1,6 @@
 {
     "name": "shikachuu/jogger",
-    "version": "0.2.1",
+    "version": "0.2.4",
     "time": "2020-11-10",
     "type": "library",
     "description": "PSR-3 compatible logger library for PHP mostly based on a Go project rs/zerolog.",
@@ -24,6 +24,9 @@
         "psr-4": {
             "Jogger\\": "src"
         }
+    },
+    "provide": {
+        "psr/log-implementation": "1.0.0"
     },
     "require": {
         "php": ">=7.4",
