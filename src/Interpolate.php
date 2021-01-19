@@ -38,14 +38,21 @@ class Interpolate
      * Changes every part of the string that is surrounded by curly braces, and uses it as an array key to search.
      * If the array contains a value for the key the function will swap it to it's assigned value, casted to a string.
      * @param string $message The string that needs the values changed.
-     * @param array $context Associative, key-value pairs, the key should be the name given between the curly braces in the string
+     * @param array $context The key should be the name given between the curly braces in the string
+     * the value should be a string or should contain a __toString magic method.
      * @return string
      */
     public function __invoke(string $message, array $context = array()): string {
         $replace = array();
         $ctx = array_merge($this->defaultContext, $context);
+        /**
+         * @psalm-suppress MixedAssignment
+         */
         foreach ($ctx as $key => $value) {
             if (!is_array($value) && (!is_object($value) || method_exists($value, '__toString'))) {
+                /**
+                 * @var string $value
+                 */
                 $replace[sprintf("{%s}", $key)] = $value;
             }
         }

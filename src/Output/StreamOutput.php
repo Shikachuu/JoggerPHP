@@ -8,6 +8,9 @@ namespace Jogger\Output;
  */
 class StreamOutput extends BaseOutput implements OutputPlugin
 {
+    /**
+     * @var resource|null|closed-resource $stream
+     */
     private $stream;
 
     /**
@@ -16,13 +19,16 @@ class StreamOutput extends BaseOutput implements OutputPlugin
      */
     public function __construct(string $level, string $streamName) {
         parent::__construct($level);
-        $this->stream = fopen($streamName, "w");
+        $this->stream = fopen($streamName, "a+");
     }
 
     /**
      * @inheritDoc
      */
     public function write(string $message): void {
+        /**
+         * @var resource $this- >stream
+         */
         fwrite($this->stream, $message);
     }
 
