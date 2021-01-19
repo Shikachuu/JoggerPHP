@@ -199,8 +199,8 @@ class Logger extends AbstractLogger implements LoggerInterface
 
     /**
      * @param string $level Level of the current log message.
-     *
      * Valid levels: debug, info, notice, warning, error, critical, emergency, alert
+     * @psalm-suppress MoreSpecificImplementedParamType
      * @param string $message Actual log message, every word surrounded by curly braces,
      * will be replaced to its value pair from the $context array if presented.
      * @param array $context Context holds key-value pairs
@@ -216,7 +216,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         foreach ($this->outputs as $output) {
             if (Logger::logLevelToNumber($output->getLevel()) <= Logger::logLevelToNumber($level)) {
                 $output->rewind();
-                $output->write($logLine);
+                $output->write($logLine . "\n");
             }
         }
     }
